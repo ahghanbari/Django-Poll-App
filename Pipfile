@@ -1,4 +1,8 @@
 [requires]
 
-python_version = "3.8"
-django_version = "3.1"
+python_version = "3.10"
+django_version = "4.2"
+asgiref_version = "3.6"
+django-crispy-forms_version = "1.9.2"
+pytz_version = "2020.1"
+sqlparse_version = "0.3.1"
