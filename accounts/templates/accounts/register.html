@@ -4,7 +4,6 @@
 <div class="container">
     <div class="row center">
         <div class="col-md-5 mx-auto p-5 shadow-sm border rounded border-primary">
-            <p>Already have an account? <a href="{% url 'accounts:login' %}">Login Here</a></p>
             {% if messages %}
             <div class="messages">
                 {% for message in messages %}
@@ -19,8 +18,13 @@
             <form action="" method="POST">
                 {% csrf_token %}
                 {{ form.as_p }}
-                <button type="submit" class="btn btn-primary">Sign Up</button>
+                <div style="text-align: center;" class="wrapper">
+                    <button style="width:30%;" type="submit" class="btn btn-primary">Sign Up</button>
+                </div>
             </form>
+            <br>
+            <p style="text-align: center;">Already have an account? <a href="{% url 'accounts:login' %}">Login Here</a></p>
+
         </div>
     </div>
 </div>
