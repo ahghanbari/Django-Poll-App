@@ -2,11 +2,11 @@
 
 # Poll App with Django
 
-Django Poll App is a straight-forward App for creating and voting Polls
-Simple UI and High Functional Poll App.
+Django Poll App is a straight-forward App for creating and voting Polls.<br>
+Simple UI and High Functional Poll App.<br>
 Try it :)
 
-<h2>Project Snapshots</h2>
+<h2>Screenshots</h2>
 
 <p align="center">
   <img src="img1.png" width="100%"/>
@@ -28,10 +28,10 @@ Try it :)
 * Download and install Python 3.10<br>
 * Download and install Git.
 <h4>Cloning</h4>
-<code>git clone https://github.com/ahghanbari/poll_request_app.git</code><br>
+<code>git clone https://github.com/ahghanbari/Django-Poll-App.git</code><br>
 
 <h4>Virtual Environment</h4>
-<code>cd poll_request_app</code><br>
+<code>cd Django-Poll-App</code><br>
 <code>pip install virtualenv</code><br>
 <code>python3 -m venv .venv</code><br>
 <code>source .venv/bin/activate</code><br>
@@ -53,4 +53,4 @@ Try it :)
 <p>This project is licensed under the MIT License - see the <code>LICENSE</code> file for details.</p>
 
 <h2>Contributing</h2>
-<p>For contribution, bug report and feature request please go to <code>https://github.com/ahghanbari/poll_request_app/issues</code></p>
+<p>For contribution, bug report and feature request please go to <code>https://github.com/ahghanbari/Django-Poll-App/issues</code></p>
