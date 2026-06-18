@@ -1,117 +1,221 @@
-
-import datetime
-from django.core.exceptions import AppRegistryNotReady
-#from django.template import loader
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect , HttpResponse , Http404  
-from django.urls import reverse , reverse_lazy
-from django.views import generic
-from django.utils import timezone
-from .models import Choice, Question
-from django.views.generic.edit import CreateView
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from django.contrib.auth.forms import UserCreationForm
-
-# def index(request):
-    # latest_question_list = Question.objects.order_by('-pub_date')[:5]
-    # template = loader.get_template('polls/index.html')
-    # context = {
-        # 'latest_question_list': latest_question_list,
-    # }
-    # return HttpResponse(template.render(context, request))
-
-#def index(request):
-#    latest_question_list = Question.objects.order_by('-pub_date')[:5]
-#    context = {'latest_question_list': latest_question_list}
-#    return render(request, 'polls/index.html', context)
+from django.core.paginator import Paginator
+from django.db.models import Count
+from django.contrib import messages
+from .models import Poll, Choice, Vote
+from .forms import PollAddForm, PollEditForm, ChoiceAddForm
+from django.http import HttpResponse
 
 
-class HomeView(generic.TemplateView):
-    template_name = 'polls/home.html'
+@login_required()
+def polls_list(request):
+    all_polls = Poll.objects.all()
+    search_term = ''
 
-class ContactUsView(generic.TemplateView):
-    template_name = 'polls/contact_us.html'
+    if 'date' in request.GET:
+        all_polls = all_polls.order_by('-pub_date')
 
+    if 'vote' in request.GET:
+        all_polls = all_polls.annotate(Count('vote')).order_by('-vote__count')
 
-@method_decorator(login_required, name='get')
-class IndexView(generic.ListView):
-    template_name = 'polls/index.html'
-    context_object_name = 'latest_question_list'
+    if 'search' in request.GET:
+        search_term = request.GET['search']
+        all_polls = all_polls.filter(text__icontains=search_term)
 
-    def get_queryset(self):
-        # """Return the last five published questions."""
-        # return Question.objects.order_by('-pub_date')[:5]
-        """
-        Return the last five published questions (not including those set to be
-        published in the future).
-        """
-        return Question.objects.filter(
-            pub_date__lte=timezone.now()
-        ).order_by('-pub_date')[:5]
+    paginator = Paginator(all_polls, 6)  # Show 6 polls per page
+    page = request.GET.get('page')
+    polls = paginator.get_page(page)
 
-# def detail(request, question_id):
-    # try:
-        # question = Question.objects.get(pk=question_id)
-    # except Question.DoesNotExist:
-        # raise Http404("Question does not exist")
-    # return render(request, 'polls/detail.html', {'question': question})
-
-#def detail(request, question_id):
-#    question = get_object_or_404(Question, pk=question_id)
-#    return render(request, 'polls/detail.html', {'question': question})
-
-@method_decorator(login_required, name='get')
-class DetailView(generic.DetailView):
-    model = Question
-    template_name = 'polls/detail.html'
-
-    
-    def get_queryset(self):
-        """
-        Excludes any questions that aren't published yet.
-        """
-        return Question.objects.filter(pub_date__lte=timezone.now())
-
-#def results(request, question_id):
-#    response = "You're looking at the results of question %s."
-#    return HttpResponse(response % question_id)
-
-#def results(request, question_id):
-#    question = get_object_or_404(Question, pk=question_id)
-#    return render(request, 'polls/results.html', {'question': question})
-
-@method_decorator(login_required, name='get')
-class ResultsView(generic.DetailView):
-    model = Question
-    template_name = 'polls/results.html'
+    get_dict_copy = request.GET.copy()
+    context = {
+        'polls': polls,
+        'search_term': search_term,
+    }
+    return render(request, 'polls/polls_list.html', context)
 
 
-def vote(request, question_id):
-    question = get_object_or_404(Question, pk=question_id)
-    try:
-        selected_choice = question.choice_set.get(pk=request.POST['choice'])
-    except (KeyError, Choice.DoesNotExist):
-        # Redisplay the question voting form.
-        return render(request, 'polls/detail.html', {
-            'question': question,
-            'error_message': "You didn't select a choice.",
-        })
+@login_required()
+def list_by_user(request):
+    all_polls = Poll.objects.filter(owner=request.user)
+    paginator = Paginator(all_polls, 7)  # Show 7 contacts per page
+
+    page = request.GET.get('page')
+    polls = paginator.get_page(page)
+
+    context = {
+        'polls': polls,
+    }
+    return render(request, 'polls/polls_list.html', context)
+
+
+@login_required()
+def polls_add(request):
+    if request.method == 'POST':
+        form = PollAddForm(request.POST)
+        if form.is_valid:
+            poll = form.save(commit=False)
+            poll.owner = request.user
+            poll.save()
+            Choice(
+                poll=poll, choice_text=form.cleaned_data['choice1']).save()
+            Choice(
+                poll=poll, choice_text=form.cleaned_data['choice2']).save()
+            Choice(
+                poll=poll, choice_text=form.cleaned_data['choice3']).save()
+
+            messages.success(
+                request, "Poll & Choices added successfully.", extra_tags='alert alert-success alert-dismissible fade show')
+
+            return redirect('polls:list')
     else:
-        user = request.user
-        exist = question.users.all()
-        if user in exist:
-            return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
-        else:
-            selected_choice.votes += 1
-            selected_choice.save()
-            question.users.add(user)
-            question.save()
-
-        return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
+        form = PollAddForm()
+    context = {
+        'form': form,
+    }
+    return render(request, 'polls/poll_add.html', context)
 
 
-class SignUpView(CreateView):
-    form_class = UserCreationForm
-    success_url = reverse_lazy('login')
-    template_name = 'registration/signup.html'
+@login_required
+def polls_edit(request, poll_id):
+    poll = get_object_or_404(Poll, pk=poll_id)
+    if request.user != poll.owner:
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = PollEditForm(request.POST, instance=poll)
+        if form.is_valid:
+            form.save()
+            messages.success(request, "Poll Updated successfully.",
+                             extra_tags='alert alert-success alert-dismissible fade show')
+            return redirect("polls:list")
+
+    else:
+        form = PollEditForm(instance=poll)
+
+    return render(request, "polls/poll_edit.html", {'form': form, 'poll': poll})
+
+
+@login_required
+def polls_delete(request, poll_id):
+    poll = get_object_or_404(Poll, pk=poll_id)
+    if request.user != poll.owner:
+        return redirect('home')
+    poll.delete()
+    messages.success(request, "Poll Deleted successfully.",
+                     extra_tags='alert alert-success alert-dismissible fade show')
+    return redirect("polls:list")
+
+
+@login_required
+def choice_add(request, poll_id):
+    poll = get_object_or_404(Poll, pk=poll_id)
+    if request.user != poll.owner:
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = ChoiceAddForm(request.POST)
+        if form.is_valid:
+            new_choice = form.save(commit=False)
+            new_choice.poll = poll
+            new_choice.save()
+            messages.success(
+                request, "Choice added successfully.", extra_tags='alert alert-success alert-dismissible fade show')
+            return redirect('polls:edit', poll.id)
+    else:
+        form = ChoiceAddForm()
+    context = {
+        'form': form,
+    }
+    return render(request, 'polls/choice_add.html', context)
+
+
+@login_required
+def choice_edit(request, choice_id):
+    choice = get_object_or_404(Choice, pk=choice_id)
+    poll = get_object_or_404(Poll, pk=choice.poll.id)
+    if request.user != poll.owner:
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = ChoiceAddForm(request.POST, instance=choice)
+        if form.is_valid:
+            new_choice = form.save(commit=False)
+            new_choice.poll = poll
+            new_choice.save()
+            messages.success(
+                request, "Choice Updated successfully.", extra_tags='alert alert-success alert-dismissible fade show')
+            return redirect('polls:edit', poll.id)
+    else:
+        form = ChoiceAddForm(instance=choice)
+    context = {
+        'form': form,
+        'edit_choice': True,
+        'choice': choice,
+    }
+    return render(request, 'polls/add_choice.html', context)
+
+
+@login_required
+def choice_delete(request, choice_id):
+    choice = get_object_or_404(Choice, pk=choice_id)
+    poll = get_object_or_404(Poll, pk=choice.poll.id)
+    if request.user != poll.owner:
+        return redirect('home')
+    choice.delete()
+    messages.success(
+        request, "Choice Deleted successfully.", extra_tags='alert alert-success alert-dismissible fade show')
+    return redirect('polls:edit', poll.id)
+
+
+def poll_detail(request, poll_id):
+    poll = get_object_or_404(Poll, id=poll_id)
+    if not poll.user_can_vote(request.user):
+        return redirect('polls:result', poll_id=poll.id)
+
+    if not poll.active:
+        return render(request, 'polls/poll_result.html', {'poll': poll})
+    context = {
+        'poll': poll,
+    }
+    return render(request, 'polls/poll_detail.html', context)
+
+
+@login_required
+def poll_vote(request, poll_id):
+    poll = get_object_or_404(Poll, pk=poll_id)
+    choice_id = request.POST.get('choice')
+    if not poll.user_can_vote(request.user):
+        messages.error(
+            request, "You already voted this poll!", extra_tags='alert alert-warning alert-dismissible fade show')
+        return redirect('polls:list')
+
+    if choice_id:
+        choice = Choice.objects.get(id=choice_id)
+        vote = Vote(user=request.user, poll=poll, choice=choice)
+        vote.save()
+        print(vote)
+        return redirect('polls:result', poll_id=poll.id)
+    else:
+        messages.error(
+            request, "No choice selected!", extra_tags='alert alert-warning alert-dismissible fade show')
+        return redirect("polls:detail", poll_id)
+    return redirect('polls:result', poll_id=poll.id)
+
+
+@login_required
+def end_poll(request, poll_id):
+    poll = get_object_or_404(Poll, pk=poll_id)
+    if request.user != poll.owner:
+        return redirect('home')
+
+    if poll.active is True:
+        poll.active = False
+        poll.save()
+        return redirect('polls:result', poll_id=poll.id)
+    else:
+        return redirect('polls:result', poll_id=poll.id)
+
+def poll_result(request, poll_id):
+    poll = get_object_or_404(Poll, pk=poll_id)
+    return render(request, 'polls/poll_result.html', {'poll': poll})
