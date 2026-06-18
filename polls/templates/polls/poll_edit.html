@@ -27,9 +27,11 @@
                     {{ field }}
                 </div>
                 {% endfor %}
+                <div style="text-align: center;">
                 <button type="submit" class="btn btn-primary">Update</button>
                 <a class="btn btn-danger" href="{% url 'polls:delete_poll' poll.id %}" role="button" onclick="return confirm('Are you sure?')">Delete</a>
                 <a class="btn btn-warning" href="{% url 'polls:add_choice' poll.id %}" role="button">Add Choice</a>
+                </div>
             </form>
 
             <div class="choices">

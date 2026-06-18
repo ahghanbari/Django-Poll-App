@@ -4,7 +4,7 @@
 <div class="container">
     <div class="row">
         <div class="col-md-8 offset-sm-2">
-            <h1 class="text-center mb-5">Welcome to polls List!</h1>
+            <h1 class="text-center mb-5">Welcome :)</h1>
             {% if messages %}
             <div class="messages">
                 {% for message in messages %}
@@ -41,12 +41,13 @@
                         <i ><a style="color: rgb(185, 34, 165);" href="{% url 'polls:result' poll.id %}">show results</a></i>
                     </a>
                     {% if request.user == poll.owner %}
+                    <a href="{% url 'polls:edit' poll.id %}" class="mr-3" data-toggle="tooltip" data-placement="top"
+                        title="Edit Poll"><i style="margin-left: 10px;" class="fas float-right btn btn-primary btn-sm mr-1">edit</i></a>
                     {% if poll.active %}
                     <a href="{% url 'polls:end_poll' poll.id %}" data-toggle="tooltip" data-placement="top" title="End Poll"
-                        onclick="return confirm('Are you sure ?')"><i class="fas fa-step-forward float-right btn btn-danger btn-sm"></i></a>
+                        onclick="return confirm('Are you sure ?')"><i class="fas float-right btn btn-danger btn-sm">end</i></a>
                     {% endif %}
-                    <a href="{% url 'polls:edit' poll.id %}" class="mr-3" data-toggle="tooltip" data-placement="top"
-                        title="Edit Poll"><i class="fas fa-pencil-alt float-right btn btn-primary btn-sm mr-1"></i></a>
+                    
                     {% endif %}
                 </li>
 
@@ -56,7 +57,7 @@
             <nav class="mt-3">
                 <ul class="pagination">
                     {% if polls.has_previous %}
-                    <li class="page-item"><a class="page-link" href="?page=1">First</a></li>
+                    <li style="text-align: center;" class="page-item"><a class="page-link" href="?page=1">First</a></li>
                     <li class="page-item"><a class="page-link" href="?page={{ polls.previous_page_number }}">Previous</a></li>
                     {% endif %}
 
