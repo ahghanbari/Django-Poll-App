@@ -1,6 +1,7 @@
 
 
 from pathlib import Path
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -13,6 +14,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     # internal app
     'polls.apps.PollsConfig',
+    "accounts.apps.AccountsConfig",
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -37,7 +39,9 @@ ROOT_URLCONF = 'mysite.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -86,16 +90,7 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 LOGIN_REDIRECT_URL = 'polls:index'
 LOGOUT_REDIRECT_URL = 'polls:index'
-
-
-
-# AUTHENTICATION_BACKENDS = [
-#     'django.contrib.auth.backends.ModelBackend',
-#     'account.authentication.EmailAuthBackend',
-#     'social_core.backends.twitter.TwitterOAuth',
-#     'social_core.backends.google.GoogleOAuth2',
-# ]
-
