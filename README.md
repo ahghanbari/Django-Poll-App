@@ -23,6 +23,12 @@ Try it :)
   <br>
 </p>
 
+<p align="center">
+  <img src="img4.png" width="100%"/>
+  <br>
+</p>
+
+
 <br>
 <h2>Getting Started</h2>
 * Download and install Python 3.10<br>
@@ -49,6 +55,8 @@ Try it :)
 
 <p>Then go to <code>http://127.0.0.1:8000</code> in your browser</p>
 
+<h2>Django-Schema-Graph</h2>
+<p>This project uses <code>Django-Schema-Graph</code> to visualize the database schema in <code>http://127.0.0.1:8000/schema/</code></p>
 <h2>License</h2>
 <p>This project is licensed under the MIT License - see the <code>LICENSE</code> file for details.</p>
 

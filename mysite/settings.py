@@ -16,6 +16,7 @@ INSTALLED_APPS = [
     'polls.apps.PollsConfig',
     "accounts.apps.AccountsConfig",
 
+    'schema_graph',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
